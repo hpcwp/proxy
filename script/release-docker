@@ -37,15 +37,15 @@ SHA=$(git rev-parse HEAD)
 
 DOCKER_TAG="${SHA}"
 
-REPO=${REPO:-gcr.io}
+REPO=${HUB}
 
 TAG=${TAG:-$DOCKER_TAG}
 
 BAZEL_TARGET_DIR="bazel-bin/src/envoy"
 
 BAZEL_TARGET="${BAZEL_TARGET_DIR}/envoy"
-RELEASE_IMAGE_NAME=${RELEASE_IMAGE_NAME:-${REPO}/${PROJECT}/envoy:${TAG}}
-DEBUG_IMAGE_NAME=${DEBUG_IMAGE_NAME:-${REPO}/${PROJECT}/envoy-debug:${TAG}}
+RELEASE_IMAGE_NAME=${RELEASE_IMAGE_NAME:-${REPO}/envoy:${TAG}}
+DEBUG_IMAGE_NAME=${DEBUG_IMAGE_NAME:-${REPO}/envoy-debug:${TAG}}
 
 if [[ ${1-} != "debug" ]] ; then
    gcloud docker --authorize-only
