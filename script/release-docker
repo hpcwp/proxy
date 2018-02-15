@@ -60,8 +60,8 @@ cp tools/deb/envoy.json ${BAZEL_TARGET_DIR}
 cp docker/proxy-* ${BAZEL_TARGET_DIR}
 cp docker/Dockerfile.debug ${BAZEL_TARGET_DIR}
 docker build --build-arg http_proxy=$http_proxy \
-  --build-arg https_proxy=$https_proxy  \
-  --build-arg HTTPS_PROXY=$HTTPS_PROXY  \
+  --build-arg https_proxy=$https_proxy \
+  --build-arg HTTPS_PROXY=$HTTPS_PROXY \
   --build-arg HTTP_PROXY=$HTTP_PROXY -f ${BAZEL_TARGET_DIR}/Dockerfile.debug -t "${DEBUG_IMAGE_NAME}" ${BAZEL_TARGET_DIR}
 
 if [[ ${1-} != "debug" ]] ; then
@@ -81,7 +81,7 @@ cp tools/deb/istio-start.sh ${BAZEL_TARGET_DIR}
 cp tools/deb/envoy.json ${BAZEL_TARGET_DIR}
 cp docker/proxy-* ${BAZEL_TARGET_DIR}
 cp docker/Dockerfile.release ${BAZEL_TARGET_DIR}
-docker build --build-arg http_proxy=$http_proxy \ 
+docker build --build-arg http_proxy=$http_proxy \
   --build-arg https_proxy=$https_proxy \
   --build-arg HTTPS_PROXY=$HTTPS_PROXY \
   --build-arg HTTP_PROXY=$HTTP_PROXY -f ${BAZEL_TARGET_DIR}/Dockerfile.release -t "${RELEASE_IMAGE_NAME}" ${BAZEL_TARGET_DIR}
