@@ -54,8 +54,8 @@ FilterHeadersStatus JwtVerificationFilter::decodeHeaders(HeaderMap& headers,
 
   // Galo POC
   // @See https://github.com/envoyproxy/envoy-filter-example/blob/master/http-filter-example/README.md
-  LowerCaseString legal_zone = LowerCaseString("x-lz");
-  headers.addCopy(legal_zone, "eu");
+  //LowerCaseString legal_zone = LowerCaseString("x-lz");
+  //headers.addCopy(legal_zone, "eu");
 
   // Galo POC
 

@@ -279,6 +279,7 @@ Jwt::Jwt(const std::string &jwt) {
   iss_ = payload_->getString("iss", "");
   sub_ = payload_->getString("sub", "");
   exp_ = payload_->getInteger("exp", 0);
+  legalZone_ = payload_->getString("legal_zone", "GLOBAL");
 
   // "aud" can be either string array or string.
   // Try as string array, read it as empty array if doesn't exist.
@@ -386,6 +387,7 @@ const std::string &Jwt::Iss() { return iss_; }
 const std::vector<std::string> &Jwt::Aud() { return aud_; }
 const std::string &Jwt::Sub() { return sub_; }
 int64_t Jwt::Exp() { return exp_; }
+const std::string &Jwt::LegalZone() { return legalZone_; }
 
 void Pubkeys::CreateFromPemCore(const std::string &pkey_pem) {
   keys_.clear();

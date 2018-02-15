@@ -28,6 +28,9 @@ const std::string kBearerPrefix = "Bearer ";
 // The HTTP header to pass verified token payload.
 const LowerCaseString kJwtPayloadKey("sec-istio-auth-userinfo");
 
+// The HTTP header to legalzone information.
+const LowerCaseString kLegalZoneKey("x-legal-zone");
+
 // Extract host and path from a URI
 void ExtractUriHostPath(const std::string& uri, std::string* host,
                         std::string* path) {
@@ -192,6 +195,12 @@ void JwtAuthenticator::VerifyKey(const Auth::Pubkeys& pubkey) {
   }
 
   headers_->addReferenceKey(kJwtPayloadKey, jwt_->PayloadStrBase64Url());
+
+  //POC
+  // Add the legal zone claim
+  //headers_->addCopy(kLegalZoneKey, "eu");
+  headers_->addReferenceKey(kLegalZoneKey, jwt_->LegalZone());
+  //POC
 
   // Remove JWT from headers.
   headers_->removeAuthorization();

@@ -219,6 +219,10 @@ class Jwt : public WithStatus {
   // not exist.
   int64_t Exp();
 
+  // I returns the legal_zone claim if present, or an empty string
+  //if "legal_zone" claims does nto exist
+  const std::string& LegalZone();
+
  private:
   const EVP_MD* md_;
 
@@ -234,6 +238,7 @@ class Jwt : public WithStatus {
   std::string iss_;
   std::vector<std::string> aud_;
   std::string sub_;
+  std::string legalZone_;
   int64_t exp_;
 
   /*
