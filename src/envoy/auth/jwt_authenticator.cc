@@ -198,7 +198,6 @@ void JwtAuthenticator::VerifyKey(const Auth::Pubkeys& pubkey) {
 
   //POC
   // Add the legal zone claim
-  //headers_->addCopy(kLegalZoneKey, "eu");
   headers_->addReferenceKey(kLegalZoneKey, jwt_->LegalZone());
   //POC
 
