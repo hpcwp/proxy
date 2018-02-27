@@ -60,3 +60,14 @@ This consists of some parts:
 ### Other TODO:
   - add Error Log
   - add integration tests
+
+
+# POC Galo Implementation Notes
+
+```
+HUB="r.jdkr.io/galo"
+TAG="0.5-lz"
+
+make build
+./script/release-docker
+```
