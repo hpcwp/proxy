@@ -199,6 +199,8 @@ void JwtAuthenticator::VerifyKey(const Auth::Pubkeys& pubkey) {
   //POC
   // Add the legal zone claim
   headers_->addReferenceKey(kLegalZoneKey, jwt_->LegalZone());
+  ENVOY_LOG(info, "Jwt legal_zone: {}",
+            jwt_->LegalZone());
   //POC
 
   // Remove JWT from headers.
