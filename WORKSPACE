@@ -16,17 +16,12 @@
 #
 
 load(
-    "//src/envoy/mixer:repositories.bzl",
-    "mixer_client_repositories",
+     "//:repositories.bzl",
+     "googletest_repositories",
+     "mixerapi_dependencies",
 )
 
-mixer_client_repositories()
-
-load(
-    "@mixerclient_git//:repositories.bzl",
-    "mixerapi_dependencies",
-)
-
+googletest_repositories()
 mixerapi_dependencies()
 
 bind(
@@ -35,7 +30,7 @@ bind(
 )
 
 # When updating envoy sha manually please update the sha in istio.deps file also
-ENVOY_SHA = "9b42fc27a2d1a1d5fdf7dd7d005660952872d1b6"
+ENVOY_SHA = "e2117cbf1f7a84e4cfd7a1e00bcc053b1afb0ea7"
 
 http_archive(
     name = "envoy",
@@ -60,6 +55,7 @@ go_register_toolchains()
 load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
 proto_register_toolchains()
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
     name = "org_pubref_rules_protobuf",
     commit = "563b674a2ce6650d459732932ea2bc98c9c9a9bf",  # Nov 28, 2017 (bazel 0.8.0 support)

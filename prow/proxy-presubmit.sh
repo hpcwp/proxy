@@ -45,6 +45,8 @@ fi
 
 cd $ROOT
 
+export BAZEL_TEST_ARGS="--test_output=errors --define=google_grpc=disabled"
+
 echo 'Code Check'
 make check
 
@@ -53,4 +55,3 @@ make build
 
 echo 'Bazel Tests'
 make test
-make clang-test
