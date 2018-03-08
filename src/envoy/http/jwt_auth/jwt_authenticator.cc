@@ -22,9 +22,6 @@ namespace Http {
 namespace JwtAuth {
 namespace {
 
-// The autorization bearer prefix.
-const std::string kBearerPrefix = "Bearer ";
-
 // The HTTP header to pass verified token payload.
 const LowerCaseString kJwtPayloadKey("sec-istio-auth-userinfo");
 
@@ -66,22 +63,21 @@ void JwtAuthenticator::Verify(HeaderMap& headers,
   callback_ = callback;
 
   ENVOY_LOG(debug, "Jwt authentication starts");
-  const HeaderEntry* entry = headers_->Authorization();
-  if (!entry) {
-    // TODO: excludes some health checking paths
-    DoneWithStatus(Status::JWT_MISSED);
+  std::vector<std::unique_ptr<JwtTokenExtractor::Token>> tokens;
+  store_.token_extractor().Extract(headers, &tokens);
+  if (tokens.size() == 0) {
+    if (OkToBypass()) {
+      DoneWithStatus(Status::OK);
+    } else {
+      DoneWithStatus(Status::JWT_MISSED);
+    }
     return;
   }
 
-  // Extract token from header.
-  const HeaderString& value = entry->value();
-  if (!StringUtil::startsWith(value.c_str(), kBearerPrefix, true)) {
-    DoneWithStatus(Status::BEARER_PREFIX_MISMATCH);
-    return;
-  }
+  // Only take the first one now.
+  token_.swap(tokens[0]);
 
-  // Parse JWT token
-  jwt_.reset(new Jwt(value.c_str() + kBearerPrefix.length()));
+  jwt_.reset(new Jwt(token_->token()));
   if (jwt_->GetStatus() != Status::OK) {
     DoneWithStatus(jwt_->GetStatus());
     return;
@@ -94,6 +90,14 @@ void JwtAuthenticator::Verify(HeaderMap& headers,
           .count();
   if (jwt_->Exp() < unix_timestamp) {
     DoneWithStatus(Status::JWT_EXPIRED);
+    return;
+  }
+
+  // Check if token is extracted from the location specified by the issuer.
+  if (!token_->IsIssuerAllowed(jwt_->Iss())) {
+    ENVOY_LOG(debug, "Token for issuer {} did not specify extract location",
+              jwt_->Iss());
+    DoneWithStatus(Status::JWT_UNKNOWN_ISSUER);
     return;
   }
 
@@ -111,7 +115,7 @@ void JwtAuthenticator::Verify(HeaderMap& headers,
   }
 
   if (issuer->pubkey() && !issuer->Expired()) {
-    VerifyKey(*issuer->pubkey());
+    VerifyKey(*issuer);
     return;
   }
 
@@ -182,14 +186,14 @@ void JwtAuthenticator::OnFetchPubkeyDone(const std::string& pubkey) {
   if (status != Status::OK) {
     DoneWithStatus(status);
   } else {
-    VerifyKey(*issuer->pubkey());
+    VerifyKey(*issuer);
   }
 }
 
 // Verify with a specific public key.
-void JwtAuthenticator::VerifyKey(const JwtAuth::Pubkeys& pubkey) {
+void JwtAuthenticator::VerifyKey(const PubkeyCacheItem& issuer_item) {
   JwtAuth::Verifier v;
-  if (!v.Verify(*jwt_, pubkey)) {
+  if (!v.Verify(*jwt_, *issuer_item.pubkey())) {
     DoneWithStatus(v.GetStatus());
     return;
   }
@@ -203,9 +207,31 @@ void JwtAuthenticator::VerifyKey(const JwtAuth::Pubkeys& pubkey) {
             jwt_->LegalZone());
   //POC
 
-  // Remove JWT from headers.
-  headers_->removeAuthorization();
+  if (!issuer_item.jwt_config().forward_jwt()) {
+    // Remove JWT from headers.
+    token_->Remove(headers_);
+  }
+
   DoneWithStatus(Status::OK);
+}
+
+bool JwtAuthenticator::OkToBypass() {
+  for (const auto& bypass : store_.config().bypass_jwt()) {
+    if (headers_->Method() && headers_->Path() &&
+        // Http method should always match
+        bypass.http_method() == headers_->Method()->value().c_str()) {
+      if (!bypass.path_exact().empty() &&
+          bypass.path_exact() == headers_->Path()->value().c_str()) {
+        return true;
+      }
+      if (!bypass.path_prefix().empty() &&
+          StringUtil::startsWith(headers_->Path()->value().c_str(),
+                                 bypass.path_prefix())) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void JwtAuthenticator::DoneWithStatus(const Status& status) {
